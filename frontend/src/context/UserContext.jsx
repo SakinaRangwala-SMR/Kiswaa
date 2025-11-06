@@ -12,7 +12,7 @@ function UserContext({children}) {
 const getCurrentUser = async (params) => {
         try {
            let  result = await axios.post(
-  "https://kiswa.onrender.com",
+  serverUrl + "/api/user/getcurrentuser",
   {}, // empty body (or actual data if backend expects some)
   { withCredentials: true }
 );
