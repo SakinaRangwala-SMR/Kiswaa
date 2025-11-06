@@ -10,17 +10,20 @@ function UserContext({ children }) {
 
   // ✅ Corrected getCurrentUser
   const getCurrentUser = async () => {
-    try {
-      const result = await axios.post(serverUrl + "/api/user/getcurrentuser", {
-        withCredentials: true,
-      });
-      setUserData(result.data);
-      console.log("User fetched:", result.data);
-    } catch (error) {
-      setUserData(null);
-      console.log("getCurrentUser error:", error.message);
-    }
-  };
+  try {
+    const result = await axios.post(
+      serverUrl + "/api/user/getcurrentuser",
+      {},
+      { withCredentials: true }
+    );
+    setUserData(result.data);
+    console.log("User fetched:", result.data);
+  } catch (error) {
+    setUserData(null);
+    console.log("getCurrentUser error:", error.message);
+  }
+};
+
 
   useEffect(() => {
     getCurrentUser();
