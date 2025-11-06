@@ -8,7 +8,7 @@ import { IoEye } from "react-icons/io5";
 import { authDataContext } from '../context/AuthContext';
 import axios from 'axios';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '../../utils/firebase';
+import { auth, provider } from '../../utils/Firebase.js';
 import { userDataContext } from '../context/UserContext';
 
 function Registration() {
