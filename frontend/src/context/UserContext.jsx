@@ -11,7 +11,7 @@ function UserContext({children}) {
    let {serverUrl} = useContext(authDataContext)
 const getCurrentUser = async (params) => {
         try {
-           let  result = await axios.post(
+           let  result = await axios.get(
   serverUrl + "/api/user/getcurrentuser",
   {}, // empty body (or actual data if backend expects some)
   { withCredentials: true }
