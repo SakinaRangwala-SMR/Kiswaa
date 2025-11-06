@@ -71,7 +71,7 @@ function Registration() {
                     <div className='w-[100%] flex items-center justify-center gap-[10px]'>
                     <div className='w-[40%] h-[1px] bg-[#96969635]'></div><span>OR</span><div className='w-[40%] h-[1px] bg-[#96969635]'></div>
                     </div>
-                     <div className='h-[90%] h-[400px] flex flex-col items-center justify-center gap-[15px]' relative>
+                     <div className='h-[90%] h-[400px] flex flex-col items-center justify-center gap-[15px] relative' >
 
                         <input type="text" className='w-[100%] h-[50px] border-[2px] border-[#96969635] 
                         backdrop:blur-sm rounded-lg shadow-lg bg-transparent placeholder-[#ffffff7c] px-[20px] font-semibold'
