@@ -26,39 +26,6 @@ function Ai() {
 
     console.log("You said:", transcript)
 
-    // --- 🛒 NEW: Add to cart command ---
-    else if (transcript.includes("add") && transcript.includes("cart")) {
-      // Example: "Add shoes size medium to cart"
-      let words = transcript.split(" ")
-
-      let start = words.indexOf("add")
-      let end = words.indexOf("cart")
-      let productWords = words.slice(start + 1, end)
-      let productName = productWords.join(" ")
-
-      // Try to detect a size (optional)
-      let size = null
-      if (productName.includes("small")) size = "S"
-      else if (productName.includes("medium")) size = "M"
-      else if (productName.includes("large")) size = "L"
-
-      // Remove size words from name
-      productName = productName.replace("size", "").replace("small", "").replace("medium", "").replace("large", "").trim()
-
-      let foundProduct = products?.find(p =>
-        p.name.toLowerCase().includes(productName)
-      )
-
-      if (foundProduct) {
-        addtoCart(foundProduct.id, size || foundProduct.sizes?.[0]) // fallback to first available size
-        speak(`Added ${foundProduct.name} to your cart`)
-        toast.success(`${foundProduct.name} added to cart`)
-      } else {
-        speak("Sorry, I could not find that product")
-        toast.error("Product not found")
-      }
-    }
-
     // --- Existing commands ---
     if (transcript.includes("search") && transcript.includes("open") && !showSearch) {
       speak("opening search")
@@ -99,7 +66,39 @@ function Ai() {
       setShowSearch(false)
     }
 
-    
+    // --- 🛒 NEW: Add to cart command ---
+    else if (transcript.includes("add") && transcript.includes("cart")) {
+      // Example: "Add shoes size medium to cart"
+      let words = transcript.split(" ")
+
+      let start = words.indexOf("add")
+      let end = words.indexOf("cart")
+      let productWords = words.slice(start + 1, end)
+      let productName = productWords.join(" ")
+
+      // Try to detect a size (optional)
+      let size = null
+      if (productName.includes("small")) size = "S"
+      else if (productName.includes("medium")) size = "M"
+      else if (productName.includes("large")) size = "L"
+
+      // Remove size words from name
+      productName = productName.replace("size", "").replace("small", "").replace("medium", "").replace("large", "").trim()
+
+      let foundProduct = products?.find(p =>
+        p.name.toLowerCase().includes(productName)
+      )
+
+      if (foundProduct) {
+        addtoCart(foundProduct.id, size || foundProduct.sizes?.[0]) // fallback to first available size
+        speak(`Added ${foundProduct.name} to your cart`)
+        toast.success(`${foundProduct.name} added to cart`)
+      } else {
+        speak("Sorry, I could not find that product")
+        toast.error("Product not found")
+      }
+    }
+
     else {
       toast.error("Try Again")
     }
