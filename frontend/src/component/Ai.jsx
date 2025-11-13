@@ -3,7 +3,7 @@ import ai from "../assets/ai.png"
 import { shopDataContext } from '../context/ShopContext'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import open from "../assets/open.mp3" // ensure this exists
+
 
 function Ai() {
   const { showSearch, setShowSearch } = useContext(shopDataContext)
