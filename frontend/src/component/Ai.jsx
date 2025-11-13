@@ -5,138 +5,107 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 
 function Ai() {
-  const { showSearch, setShowSearch, products, addtoCart } = useContext(shopDataContext)
-  const navigate = useNavigate()
-  const [activeAi, setActiveAi] = useState(false)
-  const [pendingProduct, setPendingProduct] = useState(null)
-  const [waitingForConfirmation, setWaitingForConfirmation] = useState(false)
+  let { showSearch, setShowSearch, products, addtoCart } = useContext(shopDataContext)
+  let navigate = useNavigate()
+  let [activeAi, setActiveAi] = useState(false)
+  // let openingSound = new Audio(open) // (uncomment if you have sound imported)
 
-  // --- Speak ---
-  const speak = (msg) => {
-    const utter = new SpeechSynthesisUtterance(msg)
-    utter.rate = 1
-    utter.pitch = 1
-    window.speechSynthesis.speak(utter)
+  function speak(message) {
+    let utterence = new SpeechSynthesisUtterance(message)
+    window.speechSynthesis.speak(utterence)
   }
 
-  // --- Speech recognition ---
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-  const recognition = new SpeechRecognition()
+  const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  const recognition = new speechRecognition()
+  if (!recognition) {
+    console.log("Speech recognition not supported")
+  }
 
   recognition.onresult = (e) => {
-    const transcript = e.results[0][0].transcript.toLowerCase().trim()
-    console.log("Heard:", transcript)
+    const transcript = e.results[0][0].transcript.trim().toLowerCase()
 
-    // ✅ If AI is waiting for "yes" or "no"
-    if (waitingForConfirmation && pendingProduct) {
-      if (transcript.includes("yes")) {
-        addtoCart(pendingProduct.id || pendingProduct._id, pendingProduct.sizes?.[0])
-        speak(`Added ${pendingProduct.name} to your cart`)
-        toast.success(`${pendingProduct.name} added to cart`)
-        setWaitingForConfirmation(false)
-        setPendingProduct(null)
-      } else if (transcript.includes("no")) {
-        speak("Okay, I won't add it.")
-        setWaitingForConfirmation(false)
-        setPendingProduct(null)
-      } else {
-        speak("Please say yes or no.")
-      }
-      return
+    console.log("You said:", transcript)
+
+    // --- Existing commands ---
+    if (transcript.includes("search") && transcript.includes("open") && !showSearch) {
+      speak("opening search")
+      setShowSearch(true)
+      navigate("/collection")
+    }
+    else if (transcript.includes("search") && transcript.includes("close") && showSearch) {
+      speak("closing search")
+      setShowSearch(false)
+    }
+    else if (transcript.includes("collection") || transcript.includes("products")) {
+      speak("opening collection page")
+      navigate("/collection")
+    }
+    else if (transcript.includes("about")) {
+      speak("opening about page")
+      navigate("/about")
+      setShowSearch(false)
+    }
+    else if (transcript.includes("home")) {
+      speak("opening home page")
+      navigate("/")
+      setShowSearch(false)
+    }
+    else if (transcript.includes("cart") || transcript.includes("kaat") || transcript.includes("caat")) {
+      speak("opening your cart")
+      navigate("/cart")
+      setShowSearch(false)
+    }
+    else if (transcript.includes("contact")) {
+      speak("opening contact page")
+      navigate("/contact")
+      setShowSearch(false)
+    }
+    else if (transcript.includes("order") || transcript.includes("my order")) {
+      speak("opening your orders page")
+      navigate("/order")
+      setShowSearch(false)
     }
 
-    // ✅ ADD TO CART command
-    if (transcript.includes("add") && transcript.includes("cart")) {
-      const words = transcript.split(" ")
-      const start = words.indexOf("add")
-      const end = words.indexOf("cart")
-      const productName = words.slice(start + 1, end).join(" ").trim()
+    // --- 🛒 NEW: Add to cart command ---
+    else if (transcript.includes("add") && transcript.includes("cart")) {
+      // Example: "Add shoes size medium to cart"
+      let words = transcript.split(" ")
 
-      // Find closest match (by name similarity)
-      const foundProduct = findClosestProduct(productName, products)
+      let start = words.indexOf("add")
+      let end = words.indexOf("cart")
+      let productWords = words.slice(start + 1, end)
+      let productName = productWords.join(" ")
+
+      // Try to detect a size (optional)
+      let size = null
+      if (productName.includes("small")) size = "S"
+      else if (productName.includes("medium")) size = "M"
+      else if (productName.includes("large")) size = "L"
+
+      // Remove size words from name
+      productName = productName.replace("size", "").replace("small", "").replace("medium", "").replace("large", "").trim()
+
+      let foundProduct = products?.find(p =>
+        p.name.toLowerCase().includes(productName)
+      )
 
       if (foundProduct) {
-        const price = foundProduct.price ? `It costs ₹${foundProduct.price}.` : ""
-        const desc = foundProduct.description
-          ? foundProduct.description.slice(0, 60) + "..."
-          : "No detailed description available."
-        speak(`I found ${foundProduct.name}. ${desc} ${price} Should I add it to your cart?`)
-        setPendingProduct(foundProduct)
-        setWaitingForConfirmation(true)
+        addtoCart(foundProduct.id, size || foundProduct.sizes?.[0]) // fallback to first available size
+        speak(`Added ${foundProduct.name} to your cart`)
+        toast.success(`${foundProduct.name} added to cart`)
       } else {
-        speak("Sorry, I couldn't find that product.")
+        speak("Sorry, I could not find that product")
+        toast.error("Product not found")
       }
     }
 
-    // ✅ NAVIGATION COMMANDS
-    else if (transcript.includes("open cart")) {
-      speak("Opening your cart")
-      navigate("/cart")
-    } else if (transcript.includes("collection")) {
-      speak("Opening collection page")
-      navigate("/collection")
-    } else if (transcript.includes("home")) {
-      speak("Going home")
-      navigate("/")
-    } else if (transcript.includes("about")) {
-      speak("Opening about page")
-      navigate("/about")
-    } else if (transcript.includes("contact")) {
-      speak("Opening contact page")
-      navigate("/contact")
-    } else if (transcript.includes("order")) {
-      speak("Opening orders page")
-      navigate("/order")
-    } else if (transcript.includes("search open")) {
-      speak("Opening search")
-      setShowSearch(true)
-    } else if (transcript.includes("search close")) {
-      speak("Closing search")
-      setShowSearch(false)
-    } else {
-      speak("Sorry, I didn't get that.")
+    else {
+      toast.error("Try Again")
     }
   }
 
-  recognition.onend = () => setActiveAi(false)
-
-  // --- Find closest product name match ---
-  function findClosestProduct(spokenName, products) {
-    if (!spokenName || products.length === 0) return null
-    let minDistance = Infinity
-    let bestMatch = null
-
-    for (const product of products) {
-      const distance = levenshtein(spokenName, product.name.toLowerCase())
-      if (distance < minDistance) {
-        minDistance = distance
-        bestMatch = product
-      }
-    }
-    // if name similarity > threshold
-    return minDistance <= 5 ? bestMatch : null
-  }
-
-  // --- Levenshtein distance (string similarity) ---
-  function levenshtein(a, b) {
-    const matrix = Array(a.length + 1)
-      .fill(null)
-      .map(() => Array(b.length + 1).fill(0))
-
-    for (let i = 0; i <= a.length; i++) matrix[i][0] = i
-    for (let j = 0; j <= b.length; j++) matrix[0][j] = j
-
-    for (let i = 1; i <= a.length; i++) {
-      for (let j = 1; j <= b.length; j++) {
-        const cost = a[i - 1] === b[j - 1] ? 0 : 1
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j - 1] + cost
-        )
-      }
-    }
-    return matrix[a.length][b.length]
+  recognition.onend = () => {
+    setActiveAi(false)
   }
 
   return (
@@ -144,20 +113,19 @@ function Ai() {
       className='fixed lg:bottom-[20px] md:bottom-[40px] bottom-[80px] left-[2%]'
       onClick={() => {
         recognition.start()
+        // openingSound.play()
         setActiveAi(true)
-        speak("I'm listening")
       }}
     >
       <img
         src={ai}
-        alt="AI Assistant"
-        className={`w-[100px] cursor-pointer transition-transform ${
-          activeAi ? "scale-125" : "scale-100"
-        }`}
+        alt=""
+        className={`w-[100px] cursor-pointer ${activeAi
+          ? 'translate-x-[10%] translate-y-[-10%] scale-125'
+          : 'translate-x-[0] translate-y-[0] scale-100'
+          } transition-transform`}
         style={{
-          filter: activeAi
-            ? "drop-shadow(0px 0px 30px #00d2fc)"
-            : "drop-shadow(0px 0px 20px black)"
+          filter: `${activeAi ? "drop-shadow(0px 0px 30px #00d2fc)" : "drop-shadow(0px 0px 20px black)"}`
         }}
       />
     </div>
