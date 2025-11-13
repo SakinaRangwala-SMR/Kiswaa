@@ -4,6 +4,10 @@ import uploadOnCloudinary from "../config/cloudinary.js";
 
 export const addProduct = async (req, res) => {
   try {
+    console.log("📦 Incoming product upload...");
+console.log("BODY:", req.body);
+console.log("FILES:", req.files);
+
     const { name, description, price, category, subCategory, sizes, bestseller } = req.body;
 
     if (!req.files || !req.files.image1 || !req.files.image2 || !req.files.image3 || !req.files.image4) {
